@@ -1,0 +1,196 @@
+:root{
+  --bg:#eef3ff;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --stroke:#d6def2;
+  --primary:#2563eb;
+  --chip:#f3f6ff;
+}
+
+[data-theme="dark"]{
+  --bg:#0f172a;
+  --card:#111827;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --stroke:#263244;
+  --primary:#60a5fa;
+  --chip:#1f2937;
+}
+
+.dm-wrapper{
+  display:flex; min-height:100vh;
+  background:linear-gradient(135deg,var(--bg),#f6f8ff);
+  font-family:Poppins,sans-serif; color:var(--text);
+}
+
+.dm-sidebar{
+  width:240px; background:#1c2a3f;
+  color:#e2e8f0; padding:20px;
+  display:flex; flex-direction:column;
+}
+
+.side-link{
+  border:none; background:transparent;
+  color:#cbd5e1; padding:12px 0;
+  font-size:20px; display:flex;
+  align-items:center; gap:10px;
+  cursor:pointer; margin-bottom:40px;
+}
+
+.side-link.logout{margin-top:auto; color:#ff4444;}
+
+.dm-content{flex-grow:1; display:flex; flex-direction:column;}
+
+.dm-topbar{
+  display:flex; align-items:center;
+  padding:10px 16px; background:var(--card);
+  border-bottom:1px solid var(--stroke);
+}
+
+.page-title{font-size:20px; font-weight:700; flex:1;}
+
+.avatar{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--primary);color:#fff;
+  cursor:pointer;
+}
+
+.controls{
+  padding:16px; display:flex; flex-direction:column; gap:12px;
+}
+
+.search{
+  display:flex; align-items:center; gap:10px;
+  padding:4px 12px; background:var(--card);
+  border:1px solid var(--stroke);
+  border-radius:10px; max-width:900px;
+}
+
+.search input{
+  flex:1;border:none;background:none;
+  outline:none;font-size:14px;
+}
+
+.search-btn{
+  background:var(--primary); color:#fff;
+  padding:6px 14px; border-radius:8px;
+  border:none; cursor:pointer;
+}
+
+.filters{
+  display:flex; gap:10px; flex-wrap:wrap;
+}
+
+.select-wrap{position:relative;}
+
+.select-wrap select{
+  appearance:none; min-width:160px;
+  padding:10px 38px 10px 12px;
+  border-radius:10px; border:1.5px solid var(--stroke);
+  background:var(--card); font-size:14px;
+  cursor:pointer;
+}
+
+.select-wrap .chev{
+  position:absolute; right:12px; top:50%;
+  transform:translateY(-50%); color:var(--muted);
+}
+
+.map-box{padding:0 16px;}
+
+.leaflet-host{
+  width:100%; height:250px;
+  border-radius:14px; border:1.5px solid var(--stroke);
+}
+
+.list-section{padding:16px;}
+
+.alert-item{
+  background:var(--card); border:1.5px solid var(--stroke);
+  border-radius:12px; padding:12px;
+  margin-bottom:10px; display:flex; gap:12px;
+}
+
+.alert-item.sev-high{border-left:6px solid #ef4444;}
+.alert-item.sev-moderate{border-left:6px solid #f59e0b;}
+.alert-item.sev-low{border-left:6px solid #22c55e;}
+
+/* ============================
+   SETTINGS DROPDOWN STYLES
+=============================*/
+.icon-btn{
+  width:36px;
+  height:36px;
+  border:none;
+  outline:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:var(--card);
+  color:var(--text);
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+
+.icon-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 6px 16px rgba(0,0,0,0.12);
+}
+
+.settings-menu {
+  position: absolute;
+  right: 60px;
+  top: 48px;
+  width: 230px;
+
+  background: var(--card);
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  padding: 12px 0;
+
+  box-shadow: 0 14px 40px rgba(0,0,0,.22);
+
+  z-index: 9999 !important;    /* <-- THE FIX */
+}
+
+
+.menu-item{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+  background:transparent;
+  border:none;
+  color:var(--text);
+  cursor:pointer;
+  border-radius:8px;
+  font-size:14px;
+}
+
+.menu-item:hover{
+  background:rgba(0,0,0,0.06);
+}
+
+.menu-item.danger{
+  color:#b42318;
+}
+
+.mi-ic{
+  font-size:16px;
+  opacity:.9;
+}
+.right-actions {
+  position: relative;
+  z-index: 9999 !important;   /* fix layering */
+}
+.leaflet-container,
+.leaflet-pane,
+.leaflet-map-pane {
+  z-index: 1 !important;   /* push map behind */
+}
+

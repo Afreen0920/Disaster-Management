@@ -1,0 +1,228 @@
+/* ======================================================
+   BEAUTIFUL DISASTER MANAGEMENT THEME BACKGROUND
+====================================================== */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Premium disaster-theme gradient */
+  background: radial-gradient(circle at 20% 20%, #dbeafe, #c7d2fe, #bfdbfe, #93c5fd);
+  background-size: 180% 180%;
+  animation: gradientWave 9s ease infinite;
+
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  font-family: "Poppins", sans-serif;
+}
+
+@keyframes gradientWave {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* Floating mist effect */
+.auth-container::before {
+  content: "";
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  top: -80px;
+  right: -100px;
+
+  background: radial-gradient(circle, rgba(255,255,255,0.35), transparent 70%);
+  filter: blur(70px);
+  animation: mistFloat 9s infinite ease-in-out;
+}
+
+.auth-container::after {
+  content: "";
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  bottom: -80px;
+  left: -90px;
+
+  background: radial-gradient(circle, rgba(255,255,255,0.28), transparent 75%);
+  filter: blur(80px);
+  animation: mistFloat 11s infinite ease-in-out;
+}
+
+@keyframes mistFloat {
+  0% { transform: translateY(0px); opacity: 0.8; }
+  50% { transform: translateY(25px); opacity: 1; }
+  100% { transform: translateY(0px); opacity: 0.8; }
+}
+
+/* ======================================================
+   PREMIUM GLASS CARD
+====================================================== */
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 38px 32px;
+  border-radius: 22px;
+
+  box-shadow:
+    0 12px 35px rgba(0, 0, 0, 0.25),
+    0 0 0 10px rgba(255,255,255,0.25);
+
+  backdrop-filter: blur(14px);
+  animation: cardAppear 0.6s ease;
+}
+
+@keyframes cardAppear {
+  from { opacity: 0; transform: translateY(25px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0px) scale(1); }
+}
+
+.auth-title {
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 26px;
+  color: #1e3a8a;
+  letter-spacing: 1px;
+  text-shadow: 0 3px 8px rgba(30, 58, 138, 0.25);
+}
+
+/* ======================================================
+   INPUT FIELD WITH FLOATING LABEL
+====================================================== */
+.input-group {
+  position: relative;
+  margin-bottom: 26px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.8px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 16px;
+  background: #f8fafc;
+  transition: all 0.3s ease;
+
+  outline: none;
+}
+
+.input-field:focus {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 9px rgba(37, 99, 235, 0.32);
+}
+
+/* Floating label */
+.input-label {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.input-field:focus + .input-label,
+.input-field:not(:placeholder-shown) + .input-label {
+  top: -6px;
+  left: 12px;
+  background: white;
+  padding: 0 6px;
+  font-size: 12px;
+  color: #2563eb;
+}
+
+/* ======================================================
+   PASSWORD FIELD WITH EYE ICON
+====================================================== */
+.password-wrapper {
+  position: relative;
+}
+
+.eye-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: #475569;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.eye-icon:hover {
+  color: #2563eb;
+}
+
+/* ======================================================
+   ROLE DROPDOWN
+====================================================== */
+.select-field {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.8px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 16px;
+  transition: 0.3s ease;
+}
+
+.select-field:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 9px rgba(37, 99, 235, 0.32);
+  background: #ffffff;
+}
+
+/* ======================================================
+   BUTTON
+====================================================== */
+.primary-btn {
+  width: 100%;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: none;
+  color: #ffffff;
+  font-size: 18px;
+  border-radius: 12px;
+  cursor: pointer;
+
+  transition: all 0.35s ease;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.4);
+}
+
+.primary-btn:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.55);
+}
+
+.primary-btn:active {
+  transform: scale(0.96);
+}
+
+/* ======================================================
+   SWITCH TEXT
+====================================================== */
+.switch-text {
+  margin-top: 18px;
+  text-align: center;
+  color: #475569;
+  font-size: 14px;
+}
+
+.switch-text a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.switch-text a:hover {
+  text-decoration: underline;
+  color: #1e40af;
+}

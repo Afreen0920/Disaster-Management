@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "../styles/dashboard.css";
 import {
   FaBell,
@@ -14,11 +14,12 @@ import {
   FaMoon,
   FaDesktop
 } from "react-icons/fa";
+
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
@@ -26,50 +27,52 @@ const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 function FlyTo({ center, zoom }) {
   const map = useMap();
   useEffect(() => {
-    if (center) map.flyTo(center, zoom ?? 12, { duration: 0.8 });
+    if (center) map.flyTo(center, zoom ?? 6, { duration: 0.8 });
   }, [center, zoom, map]);
   return null;
 }
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
 
-  const [showProfile, setShowProfile] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-
   const settingsMenuRef = useRef(null);
 
-  const [theme, setTheme] = useState(() => localStorage.getItem("dw_theme") || "light");
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("dw_theme") || "light"
+  );
 
   useEffect(() => {
     const effective =
       theme === "system"
-        ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+        ? window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light"
         : theme;
 
     document.documentElement.setAttribute("data-theme", effective);
     localStorage.setItem("dw_theme", theme);
   }, [theme]);
 
-
   useEffect(() => {
     function closeMenus(e) {
       if (settingsMenuRef.current && !settingsMenuRef.current.contains(e.target)) {
         setShowSettingsMenu(false);
-        setShowProfile(false);
       }
     }
     document.addEventListener("mousedown", closeMenus);
     return () => document.removeEventListener("mousedown", closeMenus);
   }, []);
 
-
+  // ==========================
+  // LOAD ALERTS + AUTO REFRESH
+  // ==========================
   const [alerts, setAlerts] = useState([]);
   const [loadingAlerts, setLoadingAlerts] = useState(true);
 
   useEffect(() => {
-    (async () => {
+    const loadAlerts = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/alerts`);
         const data = await res.json();
@@ -79,40 +82,96 @@ export default function Dashboard() {
       } finally {
         setLoadingAlerts(false);
       }
-    })();
+    };
+
+    loadAlerts();
+    const interval = setInterval(loadAlerts, 5000);
+    return () => clearInterval(interval);
   }, []);
 
+  // ==========================
+  // FILTER STATES
+  // ==========================
   const [typeF, setTypeF] = useState("");
   const [severityF, setSeverityF] = useState("");
-  const [locationF, setLocationF] = useState("");
 
-  const types = useMemo(() => ["Flood", "Earthquake", "Weather"], []);
-  const severities = useMemo(() => ["Low", "Moderate", "High"], []);
+  // ==========================
+  // COUNTRY & STATE FILTERING
+  // ==========================
+  const [countries, setCountries] = useState([]);
+  const [statesList, setStatesList] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedState, setSelectedState] = useState("");
 
-  const locations = useMemo(() => {
-    const vals = new Set();
-    alerts.forEach((a) => {
-      if (a.location && a.location.trim()) vals.add(a.location.trim());
-    });
-    return Array.from(vals);
-  }, [alerts]);
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const res = await fetch("https://countriesnow.space/api/v0.1/countries/states");
+        const data = await res.json();
+        setCountries(data.data || []);
+      } catch (err) {
+        console.log("Location API error:", err);
+      }
+    };
+    fetchLocations();
+  }, []);
 
+  useEffect(() => {
+    if (!selectedCountry) return setStatesList([]);
+    const c = countries.find((x) => x.name === selectedCountry);
+    setStatesList(c?.states || []);
+  }, [selectedCountry, countries]);
+
+  // ==========================
+  // MAP CONTROLLER
+  // ==========================
+  const [center, setCenter] = useState({ lat: 20.5937, lng: 78.9629 });
+
+  const moveToLocation = async (place) => {
+    if (!place) return;
+
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          place
+        )}`
+      );
+      const data = await res.json();
+
+      if (data?.length) {
+        setCenter({
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        });
+      }
+    } catch (error) {
+      console.log("Failed to move map:", error);
+    }
+  };
+
+  // ==========================
+  // FILTER RESULTS
+  // ==========================
   const filteredAlerts = alerts.filter(
     (a) =>
       (!typeF || a.type === typeF) &&
       (!severityF || a.severity === severityF) &&
-      (!locationF || a.location === locationF)
+      (!selectedState || a.location === selectedState)
   );
 
-  const [center, setCenter] = useState({ lat: 20.5937, lng: 78.9629 });
+  // AUTO MOVE MAP TO FIRST RESULT
+  useEffect(() => {
+    if (filteredAlerts.length > 0) {
+      setCenter({
+        lat: filteredAlerts[0].lat,
+        lng: filteredAlerts[0].lng
+      });
+    }
+  }, [typeF, severityF, selectedState]);
 
-  const redIcon = new L.Icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/484/484167.png",
-    iconSize: [28, 28],
-    iconAnchor: [14, 28]
-  });
-
-
+  // ==========================
+  // SEARCH BOX
+  // ==========================
   const [query, setQuery] = useState("");
   const searchingRef = useRef(false);
 
@@ -122,126 +181,122 @@ export default function Dashboard() {
     searchingRef.current = true;
 
     try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-      const res = await fetch(url);
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          query
+        )}`
+      );
       const data = await res.json();
 
       if (data?.length) {
+        const place = data[0];
+        const locationName = place.display_name || "";
+
         setCenter({
-          lat: parseFloat(data[0].lat),
-          lng: parseFloat(data[0].lon)
+          lat: parseFloat(place.lat),
+          lng: parseFloat(place.lon)
         });
+
+        // Filter alerts matching searched city/state/country
+        setSelectedCountry("");
+        setSelectedState("");
+        setTypeF("");
+        setSeverityF("");
       }
-    } catch (err) {
-      console.error("Search failed", err);
     } finally {
       searchingRef.current = false;
     }
   };
-
 
   const doLogout = () => {
     logout();
     navigate("/login");
   };
 
-  const handleHelp = () => {
-    alert("Help: Contact support.");
-    setShowSettingsMenu(false);
+  const types = ["Flood", "Earthquake", "Weather"];
+  const severities = ["Low", "Moderate", "High"];
+
+  const iconByType = {
+    Flood: "🌊",
+    Earthquake: "⛰️",
+    Weather: "☀️"
   };
 
-  const handleEmergency = () => {
-    window.open("tel:112");
-    setShowSettingsMenu(false);
-  };
-
+  const redIcon = new L.Icon({
+    iconUrl: "https://cdn-icons-png.flaticon.com/512/484/484167.png",
+    iconSize: [28, 28],
+    iconAnchor: [14, 28]
+  });
 
   return (
     <div className="dm-wrapper">
-
+      {/* SIDEBAR */}
       <aside className="dm-sidebar">
-        <button className="side-link"><FaMap /> Dashboard</button>
-        <button className="side-link"><FaBell /> Alerts</button>
-        <button className="side-link"><FaMap /> Reports</button>
+        <NavLink to="/dashboard" className="side-link">
+          <FaMap /> Dashboard
+        </NavLink>
+
+        <NavLink to="/alerts" className="side-link">
+          <FaBell /> Alerts
+        </NavLink>
+
+        <NavLink to="/reports" className="side-link">
+          <FaMap /> Reports
+        </NavLink>
+
+        <NavLink to="/profile" className="side-link">
+          <FaUser /> Profile
+        </NavLink>
 
         <button className="side-link logout" onClick={doLogout}>
           <FaSignOutAlt /> Logout
         </button>
       </aside>
 
+      {/* MAIN CONTENT */}
       <main className="dm-content">
-
-        {/* TOP BAR */}
         <div className="dm-topbar">
           <h1 className="page-title">Disaster Monitoring</h1>
 
           <div className="right-actions" ref={settingsMenuRef}>
-
-            {/* SETTINGS ICON */}
             <button
               className="icon-btn"
-              onClick={() => {
-                setShowSettingsMenu(!showSettingsMenu);
-                setShowProfile(false);
-              }}
+              onClick={() => setShowSettingsMenu(!showSettingsMenu)}
             >
               <FaCog />
             </button>
 
-            {/* SETTINGS MENU */}
             {showSettingsMenu && (
               <div className="settings-menu">
-
-                <button className="menu-item" onClick={() => { setTheme("light"); setShowSettingsMenu(false); }}>
-                  <FaSun className="mi-ic" /> Light
+                <button className="menu-item" onClick={() => setTheme("light")}>
+                  <FaSun /> Light
                 </button>
-
-                <button className="menu-item" onClick={() => { setTheme("dark"); setShowSettingsMenu(false); }}>
-                  <FaMoon className="mi-ic" /> Dark
+                <button className="menu-item" onClick={() => setTheme("dark")}>
+                  <FaMoon /> Dark
                 </button>
-
-                <button className="menu-item" onClick={() => { setTheme("system"); setShowSettingsMenu(false); }}>
-                  <FaDesktop className="mi-ic" /> System
+                <button className="menu-item" onClick={() => setTheme("system")}>
+                  <FaDesktop /> System
                 </button>
-
-                <button className="menu-item danger" onClick={handleEmergency}>
-                  <FaExclamationTriangle className="mi-ic" /> Emergency
+                <button
+                  className="menu-item danger"
+                  onClick={() => window.open("tel:112")}
+                >
+                  <FaExclamationTriangle /> Emergency
                 </button>
-
-                <button className="menu-item" onClick={handleHelp}>
-                  <FaQuestionCircle className="mi-ic" /> Help
+                <button
+                  className="menu-item"
+                  onClick={() => alert("Help: Contact support.")}
+                >
+                  <FaQuestionCircle /> Help
                 </button>
-
               </div>
             )}
-
-            {/* PROFILE ICON */}
-            <div
-              className="avatar"
-              onClick={() => {
-                setShowProfile(!showProfile);
-                setShowSettingsMenu(false);
-              }}
-            >
-              <FaUser />
-            </div>
-
-            {/* PROFILE POPUP */}
-            {showProfile && (
-              <div className="profile-pop">
-                <div className="pp-row"><span>Name</span> <b>{user?.name || "User"}</b></div>
-                <div className="pp-row"><span>Email</span> <b>{user?.email || "-"}</b></div>
-                <div className="pp-row"><span>Role</span> <b>{user?.role || "-"}</b></div>
-
-                <button className="pp-logout" onClick={doLogout}>Logout</button>
-              </div>
-            )}
-
           </div>
         </div>
 
-        {/* SEARCH & FILTERS */}
+        {/* SEARCH + FILTERS */}
         <div className="controls">
+          {/* SEARCH */}
           <form className="search" onSubmit={searchLocation}>
             <FaSearch className="search-ic" />
             <input
@@ -253,32 +308,72 @@ export default function Dashboard() {
             <button className="search-btn">Search</button>
           </form>
 
+          {/* FILTER ROW */}
           <div className="filters">
-
+            {/* TYPE */}
             <div className="select-wrap">
               <select value={typeF} onChange={(e) => setTypeF(e.target.value)}>
                 <option value="">Type</option>
-                {types.map(t => <option key={t}>{t}</option>)}
+                {types.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
               </select>
               <FaChevronDown className="chev" />
             </div>
 
+            {/* SEVERITY */}
             <div className="select-wrap">
-              <select value={severityF} onChange={(e) => setSeverityF(e.target.value)}>
+              <select
+                value={severityF}
+                onChange={(e) => setSeverityF(e.target.value)}
+              >
                 <option value="">Severity</option>
-                {severities.map(s => <option key={s}>{s}</option>)}
+                {severities.map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
               </select>
               <FaChevronDown className="chev" />
             </div>
 
+            {/* COUNTRY */}
             <div className="select-wrap">
-              <select value={locationF} onChange={(e) => setLocationF(e.target.value)}>
-                <option value="">Location</option>
-                {locations.map(l => <option key={l}>{l}</option>)}
+              <select
+                value={selectedCountry}
+                onChange={(e) => {
+                  setSelectedCountry(e.target.value);
+                  setSelectedState("");
+                  moveToLocation(e.target.value);
+                }}
+              >
+                <option value="">Country</option>
+                {countries.map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
               </select>
               <FaChevronDown className="chev" />
             </div>
 
+            {/* STATE */}
+            <div className="select-wrap">
+              <select
+                value={selectedState}
+                onChange={(e) => {
+                  setSelectedState(e.target.value);
+                  moveToLocation(`${e.target.value}, ${selectedCountry}`);
+                }}
+                disabled={!selectedCountry}
+              >
+                <option value="">State</option>
+                {statesList.map((s) => (
+                  <option key={s.name} value={s.name}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              <FaChevronDown className="chev" />
+            </div>
           </div>
         </div>
 
@@ -290,17 +385,17 @@ export default function Dashboard() {
             scrollWheelZoom
             className="leaflet-host"
           >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
             <FlyTo center={center} />
 
-            {filteredAlerts.map(a => (
+            {filteredAlerts.map((a) => (
               <Marker key={a._id} position={[a.lat, a.lng]} icon={redIcon}>
                 <Popup>
-                  <b>{a.title}</b><br />
-                  Type: {a.type}<br />
+                  <b>{a.title}</b>
+                  <br />
+                  Type: {a.type}
+                  <br />
                   Severity: {a.severity}
                 </Popup>
               </Marker>
@@ -309,23 +404,28 @@ export default function Dashboard() {
         </div>
 
         {/* LIVE ALERTS */}
-        <div className="list-section">
-          <h3>Live Alerts</h3>
+        <div className="live-alerts-container">
+          <h2 className="live-alerts-title">Live Alerts</h2>
 
-          {loadingAlerts && <div className="muted">Loading…</div>}
+          {filteredAlerts.length === 0 && (
+            <div className="no-alerts">No active alerts</div>
+          )}
 
-          {filteredAlerts.map(a => (
-            <div key={a._id} className={`alert-item sev-${a.severity.toLowerCase()}`}>
-              <div className="icon">{a.type === "Flood" ? "🌊" : a.type === "Earthquake" ? "⛰️" : "☀️"}</div>
-              <div className="text">
-                <div className="title">{a.title}</div>
-                <div className="sub">{a.severity}</div>
+          {filteredAlerts.map((a) => (
+            <div key={a._id} className="live-alert-item">
+              <div className="live-alert-icon-box">
+                {iconByType[a.type] || "⚠️"}
+              </div>
+
+              <div className="live-alert-info">
+                <div className="live-alert-title">{a.title}</div>
+                <div className="live-alert-severity">
+                  {a.severity} • {a.location}
+                </div>
               </div>
             </div>
           ))}
-
         </div>
-
       </main>
     </div>
   );

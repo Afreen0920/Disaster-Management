@@ -5,18 +5,18 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "../styles/auth.css";
 
 export default function Login() {
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const ok = login({ email, password });
+    const ok = await login(email, password);
     if (ok) navigate("/dashboard");
     else setError("Invalid email or password");
   };
@@ -24,11 +24,9 @@ export default function Login() {
   return (
     <div className="auth-container">
       <div className="auth-card">
-
         <h2 className="auth-title">Login</h2>
 
         <form onSubmit={handleSubmit}>
-
           <div className="input-group">
             <input
               className="input-field"
@@ -65,7 +63,6 @@ export default function Login() {
         <p className="switch-text">
           New user? <Link to="/register">Sign Up</Link>
         </p>
-
       </div>
     </div>
   );

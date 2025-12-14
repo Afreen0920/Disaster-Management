@@ -1,0 +1,12 @@
+.cp-wrapper { display:flex; justify-content:center; padding:40px; background:#b8cbf3; min-height:100vh; }
+.cp-card { width: 520px; background:#fff; padding:28px; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.12); }
+.cp-card h2 { margin-bottom:14px; color:#1a2b49; }
+.cp-card label { display:block; margin-top:12px; margin-bottom:6px; font-weight:600; color:#344; }
+.cp-card input {
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid #dfe5ee; outline:none; font-size:15px; background:#fbfcff;
+}
+.cp-msg { margin-top:10px; color:#0a7d25; font-weight:600; }
+.cp-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
+.btn-primary, .btn-outline { padding:10px 14px; border-radius:8px; font-weight:600; text-decoration:none; }
+.btn-primary { background:#1a73e8; color:#fff; border:none; }
+.btn-outline { background:#fff; border:1px solid #1a73e8; color:#1a73e8; }

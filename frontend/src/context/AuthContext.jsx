@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 const AuthCtx = createContext();
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
@@ -9,49 +9,11 @@ export function AuthProvider({ children }) {
     return raw ? JSON.parse(raw) : null;
   });
 
-  const [token, setToken] = useState(() => localStorage.getItem("dm_token") || "");
-  const [loadingUser, setLoadingUser] = useState(false);
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem("dm_token") || "";
+  });
 
-  // Save to localStorage
-  useEffect(() => {
-    if (user) localStorage.setItem("dm_user", JSON.stringify(user));
-  }, [user]);
-
-  useEffect(() => {
-    if (token) localStorage.setItem("dm_token", token);
-  }, [token]);
-
-  // --------------------------------------------------
-  // ⭐ LOAD USER FROM TOKEN (for Profile page)
-  // --------------------------------------------------
-  const loadMe = async () => {
-    if (!token) return;
-
-    try {
-      setLoadingUser(true);
-      const res = await fetch(`${API_BASE}/api/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-      }
-    } catch (err) {
-      console.log("LoadMe Error:", err);
-    } finally {
-      setLoadingUser(false);
-    }
-  };
-
-  // Auto-load user on refresh
-  useEffect(() => {
-    loadMe();
-  }, [token]);
-
-  // -------------------- REGISTER ---------------------
+  // -------------------- REGISTER --------------------
   const register = async (form) => {
     const res = await fetch(`${API_BASE}/api/auth/register`, {
       method: "POST",
@@ -62,27 +24,38 @@ export function AuthProvider({ children }) {
     return res.ok;
   };
 
-  // --------------------- LOGIN -----------------------
+  // --------------------- LOGIN ----------------------
   const login = async (email, password) => {
-    const res = await fetch(`${API_BASE}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!res.ok) return false;
+      if (!res.ok) return false;
 
-    const data = await res.json();
-    setUser(data.user);
-    setToken(data.token);
-    return true;
+      const data = await res.json();
+
+      // ✅ STORE CORRECTLY
+      localStorage.setItem("dm_user", JSON.stringify(data.user));
+      localStorage.setItem("dm_token", data.token);
+
+      setUser(data.user);
+      setToken(data.token);
+
+      return true;
+    } catch (err) {
+      return false;
+    }
   };
 
-  // --------------------- LOGOUT -----------------------
+  // --------------------- LOGOUT ---------------------
   const logout = () => {
+    localStorage.removeItem("dm_user");
+    localStorage.removeItem("dm_token");
     setUser(null);
     setToken("");
-    localStorage.clear();
   };
 
   return (
@@ -93,8 +66,6 @@ export function AuthProvider({ children }) {
         register,
         login,
         logout,
-        loadMe,
-        loadingUser,
       }}
     >
       {children}

@@ -1,0 +1,84 @@
+.alerts-container {
+  padding: 24px;
+  background: #b8cbf3;
+  min-height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.alerts-container h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #1e293b;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 22px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
+}
+
+.card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+.card input,
+.card textarea,
+.card select {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid #dbe3ff;
+  background: #f8faff;
+}
+
+.btn-green {
+  background: #c52222;
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #2563eb;
+  color: #2563eb;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.alert-item {
+  display: flex;
+  justify-content: space-between;
+  background: #f8faff;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.help-item {
+  background: #f8faff;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.status {
+  font-size: 12px;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.muted {
+  font-size: 13px;
+  color: #64748b;
+}

@@ -1,14 +1,29 @@
-// backend/config/db.js
-const mongoose = require("mongoose");
+const Alert = require("../models/Alert");
 
-async function connectDB() {
+// ADMIN – Broadcast Alert
+exports.broadcastAlert = async (req, res) => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log("MongoDB Connected");
-  } catch (err) {
-    console.error("MongoDB connection error:", err.message);
-    process.exit(1);
-  }
-}
+    const alert = await Alert.create({
+      title: req.body.title,
+      description: req.body.description,
+      location: req.body.location,
+      createdBy: req.user.id
+    });
 
-module.exports = connectDB;
+    res.status(201).json(alert);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ALL USERS – Get Active Alerts
+exports.getActiveAlerts = async (req, res) => {
+  try {
+    const alerts = await Alert.find({ status: "Active" }).sort({
+      createdAt: -1
+    });
+    res.json(alerts);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

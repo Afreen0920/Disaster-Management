@@ -6,21 +6,43 @@ const connectDB = require("./config/db");
 
 const app = express();
 
-// Connect DB
+/* ==============================
+   DATABASE CONNECTION
+   ============================== */
 connectDB();
 
-// Middlewares
-app.use(cors());   //Allows frontend and backend to talk
-app.use(express.json());   // Allows JSON request bodies
-app.use(morgan("dev"));
+/* ==============================
+   MIDDLEWARES
+   ============================== */
+app.use(cors());                // Allow frontend-backend communication
+app.use(express.json());        // Parse JSON request body
+app.use(morgan("dev"));         // Log API requests
 
-// Routes
+/* ==============================
+   ROUTES
+   ============================== */
 app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/alerts", require("./routes/alertRoutes"));  
+app.use("/api/alerts", require("./routes/alertRoutes"));
+app.use("/api/reports", require("./routes/reportRoutes"));
+app.use("/api/emergency", require("./routes/emergencyRoutes"));
 
-// Default check
-app.get("/", (req, res) => res.send("API Working"));
 
-// Start server
+/*
+ FUTURE (optional – for citizen emergency requests)
+ app.use("/api/requests", require("./routes/requestRoutes"));
+*/
+
+/* ==============================
+   DEFAULT ROUTE
+   ============================== */
+app.get("/", (req, res) => {
+  res.send("Disaster Management API is running");
+});
+
+/* ==============================
+   SERVER START
+   ============================== */
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running: http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+});

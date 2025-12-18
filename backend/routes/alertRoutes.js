@@ -1,108 +1,58 @@
-// backend/routes/alertRoutes.js
 const express = require("express");
 const router = express.Router();
 const Alert = require("../models/Alert");
+const { protect } = require("../middleware/authMiddleware");
 
-// -----------------------------
-// DUMMY ALERTS (5 TOTAL)
-// -----------------------------
-const dummyAlerts = [
-  // ===== INDIA (3 Alerts) =====
-  {
-    title: "Heavy Rainfall Alert",
-    type: "Flood",
-    severity: "Moderate",
-    country: "India",
-    state: "Maharashtra",
-    location: "Mumbai, Maharashtra",
-    lat: 19.0760,
-    lng: 72.8777
-  },
-  {
-    title: "Cyclone Landfall Expected",
-    type: "Weather",
-    severity: "High",
-    country: "India",
-    state: "Odisha",
-    location: "Puri, Odisha",
-    lat: 19.8135,
-    lng: 85.8312
-  },
-  {
-    title: "Earthquake Tremors",
-    type: "Earthquake",
-    severity: "Low",
-    country: "India",
-    state: "Gujarat",
-    location: "Bhuj, Gujarat",
-    lat: 23.2419,
-    lng: 69.6669
-  },
-
-  // ===== OTHER COUNTRIES (2 Alerts) =====
-  {
-    title: "Severe Tornado Warning",
-    type: "Weather",
-    severity: "High",
-    country: "USA",
-    state: "Texas",
-    location: "Dallas, Texas",
-    lat: 32.7767,
-    lng: -96.7970
-  },
-  {
-    title: "Typhoon Alert",
-    type: "Weather",
-    severity: "Moderate",
-    country: "Japan",
-    state: "Okinawa",
-    location: "Naha, Okinawa",
-    lat: 26.2124,
-    lng: 127.6809
-  }
-];
-
-// -----------------------------
-// SEED ALERTS (ADD 5 ALERTS)
-// -----------------------------
-router.get("/seed", async (req, res) => {
+/* ================= ADMIN: BROADCAST ALERT ================= */
+router.post("/", protect, async (req, res) => {
   try {
-    await Alert.deleteMany();
-    const added = await Alert.insertMany(dummyAlerts);
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Only admin can broadcast alerts" });
+    }
 
-    res.json({
-      message: "Dummy alerts added successfully",
-      count: added.length,
-      alerts: added
+    const alert = await Alert.create({
+      title: req.body.title,
+      description: req.body.description,
+      location: req.body.location,
+      severity: req.body.severity || "Moderate",
+      status: "Active",
+      createdBy: req.user.id,
     });
-  } catch (err) {
-    console.error("Seed error:", err);
-    res.status(500).json({ error: "Failed to seed alerts" });
-  }
-});
 
-// -----------------------------
-// GET ALL ALERTS
-// -----------------------------
-router.get("/", async (req, res) => {
-  try {
-    const alerts = await Alert.find().sort({ createdAt: -1 });
-    res.json(alerts);
-  } catch (err) {
-    res.status(500).json({ error: "Failed to load alerts" });
-  }
-});
-
-// -----------------------------
-// CREATE NEW ALERT
-// -----------------------------
-router.post("/", async (req, res) => {
-  try {
-    const alert = await Alert.create(req.body);
     res.status(201).json(alert);
   } catch (err) {
-    console.error("Create Alert Error:", err);
     res.status(500).json({ error: "Failed to create alert" });
+  }
+});
+
+/* ================= GET ACTIVE ALERTS ================= */
+router.get("/active", protect, async (req, res) => {
+  try {
+    const alerts = await Alert.find({ status: "Active" }).sort({
+      createdAt: -1,
+    });
+    res.json(alerts);
+  } catch {
+    res.status(500).json({ error: "Failed to fetch alerts" });
+  }
+});
+
+/* ================= ADMIN: RESOLVE ALERT ================= */
+router.put("/:id/resolve", protect, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Only admin can resolve alerts" });
+    }
+
+    const alert = await Alert.findByIdAndUpdate(
+      req.params.id,
+      { status: "Resolved" },
+      { new: true }
+    );
+
+    res.json(alert);
+  } catch {
+    res.status(500).json({ error: "Failed to resolve alert" });
   }
 });
 

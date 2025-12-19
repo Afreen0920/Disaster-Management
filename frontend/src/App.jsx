@@ -9,6 +9,10 @@ import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import ChangePassword from "./pages/ChangePassword";
 import AlertPage from "./pages/AlertPage";
+import ReportsPage from "./pages/ReportsPage";
+
+<Route path="/reports" element={<ReportsPage />} />
+
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();

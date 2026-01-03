@@ -28,6 +28,17 @@ const alertSchema = new mongoose.Schema({
     default: "Active",
   },
 
+  // 🔥 OPTIONAL FOR ADMIN ALERTS
+  latitude: {
+    type: Number,
+    required: false,
+  },
+
+  longitude: {
+    type: Number,
+    required: false,
+  },
+
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -39,4 +50,5 @@ const alertSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Alert", alertSchema);
+module.exports =
+  mongoose.models.Alert || mongoose.model("Alert", alertSchema);

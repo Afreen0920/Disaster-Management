@@ -9,23 +9,67 @@ import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import ChangePassword from "./pages/ChangePassword";
 import AlertPage from "./pages/AlertPage";
-import ReportsPage from "./pages/ReportsPage";
+import Rescue from "./pages/Rescue";
 
-<Route path="/reports" element={<ReportsPage />} />
-
-
+/* ================= AUTH GUARD ================= */
 function PrivateRoute({ children }) {
   const { user } = useAuth();
+
+  if (user === undefined) {
+    return <div>Loading...</div>; // ⏳ prevents blank screen
+  }
+
   return user ? children : <Navigate to="/login" />;
+}
+
+
+
+function PublicRoute({ children }) {
+  const { isAuthenticated, authLoading } = useAuth();
+
+  if (authLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return isAuthenticated ? <Navigate to="/dashboard" /> : children;
+}
+
+
+function RescueRoute({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+
+  return user.role === "admin" || user.role === "responder"
+    ? children
+    : <Navigate to="/dashboard" replace />;
 }
 
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* PUBLIC */}
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
 
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
+        />
+
+        {/* PRIVATE */}
         <Route
           path="/dashboard"
           element={
@@ -43,6 +87,16 @@ export default function App() {
             </PrivateRoute>
           }
         />
+
+        <Route
+          path="/rescue"
+          element={
+            <PrivateRoute>
+              <Rescue />
+          </PrivateRoute>
+        }
+      />
+
 
         <Route
           path="/profile"
@@ -71,7 +125,8 @@ export default function App() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/login" />} />
+        {/* FALLBACK */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </AuthProvider>
   );

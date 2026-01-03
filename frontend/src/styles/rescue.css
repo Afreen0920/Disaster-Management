@@ -1,58 +1,39 @@
 /* ===== PAGE ===== */
-.alerts-dark {
+.rescue-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #c7d2fe, #bfdbfe, #e0f2fe);
   padding: 30px;
   font-family: "Poppins", sans-serif;
-  color: #1e293b;
 }
 
 /* ===== HEADER ===== */
-.alerts-header {
+.rescue-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
 }
 
-.alerts-header h2 {
+.rescue-header h2 {
   font-size: 26px;
   font-weight: 600;
   color: #1e3a8a;
 }
 
-/* ===== HEADER ACTIONS ===== */
-.header-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.icon-btn,
 .logout-icon {
-  background: #ffffff;
-  border: none;
-  border-radius: 50%;
-  padding: 10px;
+  font-size: 22px;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease;
+  color: #1e3a8a;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.icon-btn:hover,
 .logout-icon:hover {
-  transform: scale(1.05);
-}
-
-.icon-btn.logout,
-.logout-icon {
+  transform: scale(1.1);
   color: #dc2626;
 }
 
 /* ===== CARD ===== */
-.dark-card {
+.card {
   background: #ffffff;
   padding: 22px;
   border-radius: 16px;
@@ -61,7 +42,7 @@
   animation: fadeIn 0.4s ease;
 }
 
-.dark-card h3 {
+.card h3 {
   margin-bottom: 16px;
   font-size: 18px;
   color: #1f2937;
@@ -70,9 +51,8 @@
 }
 
 /* ===== INPUTS ===== */
-.dark-card input,
-.dark-card textarea,
-.dark-card select {
+input,
+textarea {
   width: 100%;
   padding: 12px 14px;
   margin-bottom: 14px;
@@ -80,24 +60,22 @@
   border: 1px solid #c7d2fe;
   font-size: 14px;
   outline: none;
-  background: #ffffff;
   transition: border 0.2s ease, box-shadow 0.2s ease;
 }
 
-.dark-card input:focus,
-.dark-card textarea:focus,
-.dark-card select:focus {
+input:focus,
+textarea:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
-.dark-card textarea {
-  resize: none;
+textarea {
   height: 90px;
+  resize: none;
 }
 
-/* ===== BUTTONS ===== */
-.btn-green {
+/* ===== BUTTON ===== */
+.btn {
   background: linear-gradient(135deg, #22c55e, #16a34a);
   color: #ffffff;
   border: none;
@@ -109,33 +87,16 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.btn-green:hover {
+.btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 14px rgba(34, 197, 94, 0.35);
 }
 
-.btn-outline {
-  background: transparent;
-  border: 1px solid #2563eb;
-  color: #2563eb;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-outline:hover {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-/* ===== ALERT / HELP ROW ===== */
-.alert-row,
-.help-row {
+/* ===== RESCUE ITEM ===== */
+.rescue-item {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 14px;
   padding: 16px;
   margin-bottom: 14px;
   border-radius: 14px;
@@ -144,58 +105,67 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.alert-row:hover,
-.help-row:hover {
+.rescue-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
 }
 
-/* ===== ICONS ===== */
-.icon-alert {
-  color: #f59e0b;
-  font-size: 18px;
-}
-
-.icon-help {
-  color: #2563eb;
-  font-size: 18px;
-}
-
-/* ===== TEXT INFO ===== */
-.alert-info {
+.rescue-info {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
-.alert-info strong {
-  font-size: 14px;
-  font-weight: 600;
+.rescue-info b {
+  font-size: 15px;
   color: #111827;
 }
 
-.alert-info span {
-  font-size: 12px;
-  color: #6b7280;
+.rescue-info p {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #374151;
 }
 
-/* ===== STATUS PILL ===== */
-.status {
-  padding: 6px 14px;
-  font-size: 12px;
+/* ===== ADMIN ASSIGN BUTTON ===== */
+.rescue-item button {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rescue-item button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
+}
+
+/* ===== COMPLETED PILL ===== */
+.complete-box {
+  padding: 6px 16px;
+  font-size: 13px;
   font-weight: 500;
   color: #15803d;
   background: #dcfce7;
   border: 1px solid #15803d;
   border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
 }
 
-/* ===== MUTED TEXT ===== */
-.muted {
-  font-size: 13px;
+.complete-box:hover {
+  background: #15803d;
+  color: #ffffff;
+  box-shadow: 0 6px 14px rgba(21, 128, 61, 0.35);
+}
+
+/* ===== EMPTY TEXT ===== */
+.card p {
+  font-size: 14px;
   color: #6b7280;
-  margin-top: 6px;
 }
 
 /* ===== ANIMATION ===== */

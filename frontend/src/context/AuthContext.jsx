@@ -1,78 +1,72 @@
-import React, { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
-const AuthCtx = createContext();
+const AuthContext = createContext(null);
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const raw = localStorage.getItem("dm_user");
-    return raw ? JSON.parse(raw) : null;
-  });
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true); // ✅ ADD THIS
 
-  const [token, setToken] = useState(() => {
-    return localStorage.getItem("dm_token") || "";
-  });
+  useEffect(() => {
+    const storedUser = localStorage.getItem("dm_user");
+    const storedToken = localStorage.getItem("dm_token");
 
-  // -------------------- REGISTER --------------------
+    if (storedUser && storedToken) {
+      setUser(JSON.parse(storedUser));
+      setToken(storedToken);
+    }
+
+    setLoading(false); // ✅ IMPORTANT
+  }, []);
+
   const register = async (form) => {
     const res = await fetch(`${API_BASE}/api/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(form)
     });
-
     return res.ok;
   };
 
-  // --------------------- LOGIN ----------------------
   const login = async (email, password) => {
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
 
-      if (!res.ok) return false;
+    if (!res.ok) return false;
 
-      const data = await res.json();
+    const data = await res.json();
+    localStorage.setItem("dm_user", JSON.stringify(data.user));
+    localStorage.setItem("dm_token", data.token);
 
-      // ✅ STORE CORRECTLY
-      localStorage.setItem("dm_user", JSON.stringify(data.user));
-      localStorage.setItem("dm_token", data.token);
-
-      setUser(data.user);
-      setToken(data.token);
-
-      return true;
-    } catch (err) {
-      return false;
-    }
+    setUser(data.user);
+    setToken(data.token);
+    return true;
   };
 
-  // --------------------- LOGOUT ---------------------
   const logout = () => {
-    localStorage.removeItem("dm_user");
-    localStorage.removeItem("dm_token");
+    localStorage.clear();
     setUser(null);
-    setToken("");
+    setToken(null);
   };
+
+  const authHeader = () => ({
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json"
+  });
 
   return (
-    <AuthCtx.Provider
-      value={{
-        user,
-        token,
-        register,
-        login,
-        logout,
-      }}
+    <AuthContext.Provider
+      value={{ user, token, loading, register, login, logout, authHeader }}
     >
       {children}
-    </AuthCtx.Provider>
+    </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  return useContext(AuthCtx);
+  return useContext(AuthContext);
 }

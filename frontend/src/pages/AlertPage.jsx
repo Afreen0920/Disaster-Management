@@ -4,14 +4,17 @@ import { useAuth } from "../context/AuthContext";
 import {
   FaExclamationTriangle,
   FaMapMarkerAlt,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaArrowLeft
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import "../styles/alerts.css";
 
 const API = "http://localhost:5000/api";
 
 export default function AlertPage() {
   const { user, token, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [alerts, setAlerts] = useState([]);
   const [helpRequests, setHelpRequests] = useState([]);
@@ -57,7 +60,6 @@ export default function AlertPage() {
     }
   };
 
-  /* 🔥 FIXED USE EFFECT */
   useEffect(() => {
     if (user && token) {
       fetchAlerts();
@@ -118,7 +120,12 @@ export default function AlertPage() {
 
       {/* HEADER */}
       <div className="alerts-header">
+        <button className="back-btn" onClick={() => navigate("/dashboard")}>
+          <FaArrowLeft /> Back
+        </button>
+
         <h2>Alerts</h2>
+
         <button className="logout-icon" onClick={logout}>
           <FaSignOutAlt />
         </button>
@@ -179,7 +186,7 @@ export default function AlertPage() {
         ))}
       </div>
 
-      {/* 🔥 HELP REQUESTS (FROM CITIZENS) */}
+      {/* HELP REQUESTS */}
       {(user.role === "admin" || user.role === "responder") && (
         <div className="dark-card">
           <h3>Help Requests</h3>

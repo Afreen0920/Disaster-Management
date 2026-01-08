@@ -6,28 +6,18 @@ const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ ADD THIS
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("dm_user");
-    const storedToken = localStorage.getItem("dm_token");
+    const u = localStorage.getItem("dm_user");
+    const t = localStorage.getItem("dm_token");
 
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
+    if (u && t) {
+      setUser(JSON.parse(u));
+      setToken(t);
     }
-
-    setLoading(false); // ✅ IMPORTANT
+    setLoading(false);
   }, []);
-
-  const register = async (form) => {
-    const res = await fetch(`${API_BASE}/api/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
-    });
-    return res.ok;
-  };
 
   const login = async (email, password) => {
     const res = await fetch(`${API_BASE}/api/auth/login`, {
@@ -59,14 +49,10 @@ export function AuthProvider({ children }) {
   });
 
   return (
-    <AuthContext.Provider
-      value={{ user, token, loading, register, login, logout, authHeader }}
-    >
+    <AuthContext.Provider value={{ user, token, loading, login, logout, authHeader }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext);

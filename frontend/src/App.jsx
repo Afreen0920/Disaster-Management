@@ -8,6 +8,9 @@ import AlertPage from "./pages/AlertPage";
 import RiskAssessment from "./pages/RiskAssessment";
 import Rescue from "./pages/Rescue";
 import Profile from "./pages/Profile";
+import ResponderReports from "./pages/ResponderReports";
+import SubmitReport from "./pages/SubmitReport";
+import MyReports from "./pages/MyReports"; // ✅ ADD THIS
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
@@ -26,6 +29,9 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* ===== DEFAULT ===== */}
+          <Route path="/" element={<Navigate to="/login" />} />
+
           {/* ===== PUBLIC ===== */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -59,6 +65,33 @@ export default function App() {
           />
 
           <Route
+            path="/submit-report"
+            element={
+              <PrivateRoute>
+                <SubmitReport />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/my-reports"
+            element={
+              <PrivateRoute>
+                <MyReports />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/responder-reports"
+            element={
+              <PrivateRoute>
+                <ResponderReports />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
             path="/rescue"
             element={
               <PrivateRoute>
@@ -76,8 +109,8 @@ export default function App() {
             }
           />
 
-          {/* ===== DEFAULT ===== */}
-          <Route path="*" element={<Navigate to="/dashboard" />} />
+          {/* ===== FALLBACK ===== */}
+          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

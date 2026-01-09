@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaSignOutAlt } from "react-icons/fa";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 import "../styles/reports.css";
 
+const API_BASE = "http://localhost:5000";
+
 export default function SubmitReport() {
-  const { user, authHeader, logout } = useAuth();
   const navigate = useNavigate();
+  const { authHeader, logout } = useAuth();
 
   const [form, setForm] = useState({
     title: "",
@@ -15,40 +18,26 @@ export default function SubmitReport() {
     description: ""
   });
 
-  if (user?.role !== "citizen") {
-    return <p>Only citizens can submit reports.</p>;
-  }
-
-  const handleChange = (e) =>
+  const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:5000/api/reports", {
-      method: "POST",
-      headers: authHeader(),
-      body: JSON.stringify(form)
+    await axios.post(`${API_BASE}/api/reports`, form, {
+      headers: authHeader()
     });
 
-    if (!res.ok) {
-      alert("Failed to submit report");
-      return;
-    }
-
     alert("Report submitted successfully");
-    setForm({ title: "", category: "", location: "", description: "" });
+    navigate("/reports");
   };
 
   return (
     <div className="reports-page">
-      {/* HEADER WITH ICONS */}
+      {/* ===== HEADER ===== */}
       <div className="reports-header">
-        <button
-          className="icon-only"
-          onClick={() => navigate("/dashboard")}
-          title="Back"
-        >
+        <button className="icon-only" onClick={() => navigate("/reports")}>
           <FaArrowLeft />
         </button>
 
@@ -58,25 +47,23 @@ export default function SubmitReport() {
             logout();
             navigate("/login");
           }}
-          title="Logout"
         >
           <FaSignOutAlt />
         </button>
       </div>
 
-      {/* CARD */}
+      {/* ===== FORM CARD ===== */}
       <div className="report-card">
-        <h2>🚨 Submit Incident Report</h2>
-
         <form className="report-form" onSubmit={handleSubmit}>
           <input
             name="title"
-            placeholder="Incident Title"
+            placeholder="Title"
             value={form.title}
             onChange={handleChange}
             required
           />
 
+          {/* ✅ CATEGORY DROPDOWN */}
           <select
             name="category"
             value={form.category}
@@ -84,11 +71,13 @@ export default function SubmitReport() {
             required
           >
             <option value="">Select Category</option>
-            <option>Flood</option>
-            <option>Fire</option>
-            <option>Accident</option>
-            <option>Road Block</option>
-            <option>Earthquake</option>
+            <option value="Fire">Fire</option>
+            <option value="Accident">Accident</option>
+            <option value="Flood">Flood</option>
+            <option value="Medical">Medical Emergency</option>
+            <option value="Gas Leak">Gas Leak</option>
+            <option value="Earthquake">Earthquake</option>
+            <option value="Other">Other</option>
           </select>
 
           <input
@@ -101,12 +90,14 @@ export default function SubmitReport() {
 
           <textarea
             name="description"
-            placeholder="Description (optional)"
+            placeholder="Describe the emergency situation"
+            rows="4"
             value={form.description}
             onChange={handleChange}
+            required
           />
 
-          <button type="submit" className="primary-btn">
+          <button className="primary-btn" type="submit">
             Submit Report
           </button>
         </form>

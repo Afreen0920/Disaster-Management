@@ -32,7 +32,6 @@ export default function RiskAssessment() {
   const navigate = useNavigate();
   const { user, loading, authHeader, logout } = useAuth();
 
-  /* ===== STATE ===== */
   const [reports, setReports] = useState([]);
   const [riskData, setRiskData] = useState({
     areas: [],
@@ -40,71 +39,49 @@ export default function RiskAssessment() {
   });
 
   const [loadingPage, setLoadingPage] = useState(false);
-  const [error, setError] = useState("");
 
-  /* ===== AUTH ===== */
   if (loading) return <div className="reports-page">Loading...</div>;
   if (!user) return <div className="reports-page">Not logged in</div>;
 
   const role = user.role;
 
-  /* ===== FETCH ADMIN DATA ===== */
+  useEffect(() => {
+    if (role === "responder") {
+      navigate("/responder-reports");
+    }
+  }, [role, navigate]);
+
   useEffect(() => {
     if (role === "admin") {
       setLoadingPage(true);
-
       Promise.all([
-        axios.get(`${API_BASE}/api/reports/all`, {
-          headers: authHeader()
-        }),
-        axios.get(`${API_BASE}/api/reports/risk`, {
-          headers: authHeader()
-        })
-      ])
-        .then(([r1, r2]) => {
-          setReports(r1.data || []);
-          setRiskData(
-            r2.data || {
-              areas: [],
-              engagement: { acknowledged: 0, ignored: 0 }
-            }
-          );
-          setLoadingPage(false);
-        })
-        .catch(() => {
-          setError("Failed to load admin data");
-          setLoadingPage(false);
-        });
+        axios.get(`${API_BASE}/api/reports/all`, { headers: authHeader() }),
+        axios.get(`${API_BASE}/api/reports/risk`, { headers: authHeader() })
+      ]).then(([r1, r2]) => {
+        setReports(r1.data || []);
+        setRiskData(r2.data);
+        setLoadingPage(false);
+      });
     }
   }, [role, authHeader]);
 
-  /* ===== ASSIGN RESPONDER (AUTO) ===== */
   const assignResponder = async (id) => {
-    try {
-      await axios.put(
-        `${API_BASE}/api/reports/assign/${id}`,
-        {},
-        { headers: authHeader() }
-      );
-
-      const res = await axios.get(`${API_BASE}/api/reports/all`, {
-        headers: authHeader()
-      });
-      setReports(res.data);
-
-      alert("Responder assigned");
-    } catch {
-      alert("Assignment failed");
-    }
+    await axios.put(
+      `${API_BASE}/api/reports/assign/${id}`,
+      {},
+      { headers: authHeader() }
+    );
+    const res = await axios.get(`${API_BASE}/api/reports/all`, {
+      headers: authHeader()
+    });
+    setReports(res.data);
   };
 
-  /* ===== HEADER ===== */
   const Header = () => (
     <div className="reports-header">
       <button className="icon-only" onClick={() => navigate("/dashboard")}>
         <FaArrowLeft />
       </button>
-
       <button
         className="icon-only logout"
         onClick={() => {
@@ -122,8 +99,9 @@ export default function RiskAssessment() {
     return (
       <div className="reports-page">
         <Header />
+        <h2 className="page-title">Reports</h2>
+
         <div className="report-card">
-          <h3>Citizen Reports</h3>
           <button
             className="primary-btn"
             onClick={() => navigate("/submit-report")}
@@ -142,17 +120,10 @@ export default function RiskAssessment() {
     );
   }
 
-  /* ================= RESPONDER ================= */
-  if (role === "responder") {
-    navigate("/responder-reports");
-    return null;
-  }
-
   /* ================= ADMIN ================= */
   if (role === "admin") {
     if (loadingPage)
-      return <div className="reports-page">Loading admin data...</div>;
-    if (error) return <div className="reports-page">{error}</div>;
+      return <div className="reports-page">Loading...</div>;
 
     const barData = {
       labels: riskData.areas.map((a) => a._id || "Unknown"),
@@ -181,53 +152,9 @@ export default function RiskAssessment() {
     return (
       <div className="reports-page">
         <Header />
+        <h2 className="page-title">Reports</h2>
 
-        {/* ===== REPORT LIST ===== */}
-        <div className="report-card">
-          <h3>All Citizen Reports</h3>
-
-          {reports.length === 0 ? (
-            <p>No reports yet</p>
-          ) : (
-            <table className="report-table">
-              <thead>
-                <tr>
-                  <th>Citizen</th>
-                  <th>Category</th>
-                  <th>Location</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reports.map((r) => (
-                  <tr key={r._id}>
-                    <td>{r.citizenName}</td>
-                    <td>{r.category}</td>
-                    <td>{r.location}</td>
-                    <td className={`status ${r.status?.toLowerCase()}`}>
-                      {r.status}
-                    </td>
-                    <td>
-                      {r.status === "Submitted" ? (
-                        <button
-                          className="assign-btn"
-                          onClick={() => assignResponder(r._id)}
-                        >
-                          Assign
-                        </button>
-                      ) : (
-                        "Assigned"
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* ===== ANALYTICS ===== */}
+        {/* Charts first */}
         <div className="analytics-grid">
           <div className="report-card">
             <h3>High-Risk Areas</h3>
@@ -239,9 +166,53 @@ export default function RiskAssessment() {
             <Pie data={pieData} />
           </div>
         </div>
+
+        {/* Table after */}
+        <div className="report-card">
+          <h3>All Citizen Reports</h3>
+
+          <table className="report-table">
+            <thead>
+              <tr>
+                <th>Citizen</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reports.map((r) => (
+                <tr key={r._id}>
+                  <td>{r.citizenName}</td>
+                  <td>{r.category}</td>
+                  <td>{r.location}</td>
+                  <td className={`status ${r.status?.toLowerCase()}`}>
+                    {r.status}
+                  </td>
+                  <td>
+                    {r.status === "Submitted" && (
+                      <button
+                        className="assign-btn"
+                        onClick={() => assignResponder(r._id)}
+                      >
+                        Assign
+                      </button>
+                    )}
+                    {r.status !== "Submitted" && (
+                      <span className={`status ${r.status.toLowerCase()}`}>
+                        {r.status}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   }
 
-  return <div className="reports-page">Invalid role</div>;
+  return null;
 }

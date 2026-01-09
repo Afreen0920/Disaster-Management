@@ -43,37 +43,19 @@ router.get("/all", auth, async (req, res) => {
   res.json(reports);
 });
 
-// Get responders list
-router.get("/responders", auth, async (req, res) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ message: "Admin only" });
-  }
-
-  const responders = await User.find({ role: "responder" })
-    .select("_id name email");
-
-  res.json(responders);
-});
-
-// Assign responder (AUTO ASSIGN FIRST RESPONDER)
+// Assign responder (AUTO ASSIGN – NO RESPONDER ID LOGIC)
 router.put("/assign/:id", auth, async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Admin only" });
   }
 
-  const responder = await User.findOne({ role: "responder" });
-  if (!responder) {
-    return res.status(400).json({ message: "No responders available" });
-  }
-
+  // Auto assign (no responder-specific logic)
   await Report.findByIdAndUpdate(req.params.id, {
-    assignedResponder: responder._id,
-    status: "In Progress"
+    status: "Assigned"
   });
 
   res.json({
-    message: "Responder assigned",
-    responder: responder.name
+    message: "Report assigned"
   });
 });
 
@@ -87,7 +69,7 @@ router.get("/risk", auth, async (req, res) => {
     { $group: { _id: "$location", count: { $sum: 1 } } }
   ]);
 
-  const acknowledged = await Report.countDocuments({ status: "Resolved" });
+  const acknowledged = await Report.countDocuments({ status: "Completed" });
   const ignored = await Report.countDocuments({ status: "Submitted" });
 
   res.json({
@@ -98,30 +80,30 @@ router.get("/risk", auth, async (req, res) => {
 
 /* ================= RESPONDER ================= */
 
-// View assigned reports
+// 🔥 NUCLEAR FIX: responder sees ALL assigned reports
 router.get("/assigned", auth, async (req, res) => {
   if (req.user.role !== "responder") {
     return res.status(403).json({ message: "Responder only" });
   }
 
   const reports = await Report.find({
-    assignedResponder: req.user._id
+    status: "Assigned"
   });
 
   res.json(reports);
 });
 
-// Complete report
+// Mark report as completed
 router.put("/complete/:id", auth, async (req, res) => {
   if (req.user.role !== "responder") {
     return res.status(403).json({ message: "Responder only" });
   }
 
   await Report.findByIdAndUpdate(req.params.id, {
-    status: "Resolved"
+    status: "Completed"
   });
 
-  res.json({ message: "Report resolved" });
+  res.json({ message: "Report completed" });
 });
 
 module.exports = router;

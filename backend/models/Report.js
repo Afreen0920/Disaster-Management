@@ -9,7 +9,13 @@ const reportSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Submitted", "In Progress", "Resolved"],
+      enum: [
+        "Submitted",
+        "Assigned",     // ✅ added
+        "In Progress",
+        "Completed",    // ✅ added
+        "Resolved"
+      ],
       default: "Submitted"
     },
 
@@ -29,4 +35,3 @@ const reportSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Report", reportSchema);
-    

@@ -8,18 +8,20 @@ import AlertPage from "./pages/AlertPage";
 import RiskAssessment from "./pages/RiskAssessment";
 import Rescue from "./pages/Rescue";
 import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
+import ChangePassword from "./pages/ChangePassword";
 import ResponderReports from "./pages/ResponderReports";
 import SubmitReport from "./pages/SubmitReport";
-import MyReports from "./pages/MyReports"; // ✅ ADD THIS
+import MyReports from "./pages/MyReports"; // ✅ ADDED
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
-/* ===== PRIVATE ROUTE ===== */
+/* ================= PRIVATE ROUTE ================= */
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
 
   if (loading) return <div>Loading...</div>;
-  if (!user) return <Navigate to="/login" />;
+  if (!user) return <Navigate to="/login" replace />;
 
   return children;
 }
@@ -29,14 +31,11 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* ===== DEFAULT ===== */}
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-          {/* ===== PUBLIC ===== */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* ===== PRIVATE ===== */}
           <Route
             path="/dashboard"
             element={
@@ -73,6 +72,7 @@ export default function App() {
             }
           />
 
+          {/* ✅ FIXED ROUTE */}
           <Route
             path="/my-reports"
             element={
@@ -109,8 +109,25 @@ export default function App() {
             }
           />
 
-          {/* ===== FALLBACK ===== */}
-          <Route path="*" element={<Navigate to="/login" />} />
+          <Route
+            path="/edit-profile"
+            element={
+              <PrivateRoute>
+                <EditProfile />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/change-password"
+            element={
+              <PrivateRoute>
+                <ChangePassword />
+              </PrivateRoute>
+            }
+          />
+
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

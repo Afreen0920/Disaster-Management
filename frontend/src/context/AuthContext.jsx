@@ -1,26 +1,30 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext(null);
-
-const API_BASE =
-  import.meta.env.VITE_API_BASE || "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  /* ================= LOAD FROM LOCAL STORAGE ================= */
+  /* ================= LOAD FROM STORAGE ================= */
   useEffect(() => {
-    const storedUser = localStorage.getItem("dm_user");
-    const storedToken = localStorage.getItem("dm_token");
+    const u = localStorage.getItem("dm_user");
+    const t = localStorage.getItem("dm_token");
 
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
+    if (u && t) {
+      setUser(JSON.parse(u));
+      setToken(t);
     }
     setLoading(false);
   }, []);
+
+  /* ================= AUTH HEADER ================= */
+  const authHeader = () => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`
+  });
 
   /* ================= LOGIN ================= */
   const login = async (email, password) => {
@@ -30,18 +34,14 @@ export function AuthProvider({ children }) {
       body: JSON.stringify({ email, password })
     });
 
-    if (!res.ok) {
-      return false;
-    }
+    if (!res.ok) return false;
 
     const data = await res.json();
-
     localStorage.setItem("dm_user", JSON.stringify(data.user));
     localStorage.setItem("dm_token", data.token);
 
     setUser(data.user);
     setToken(data.token);
-
     return true;
   };
 
@@ -55,34 +55,91 @@ export function AuthProvider({ children }) {
 
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.message || "Registration failed");
+      throw new Error(err.message);
     }
 
     return await res.json();
   };
 
+  /* ================= LOAD CURRENT USER ================= */
+  const loadMe = async () => {
+    if (!token) return null;
+
+    const res = await fetch(`${API_BASE}/api/auth/me`, {
+      headers: authHeader()
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    setUser(data);
+    localStorage.setItem("dm_user", JSON.stringify(data));
+    return data;
+  };
+
+  /* ================= UPDATE PROFILE ================= */
+  const updateProfile = async (form) => {
+    const res = await fetch(`${API_BASE}/api/auth/update-profile`, {
+      method: "PUT",
+      headers: authHeader(),
+      body: JSON.stringify(form)
+    });
+
+    if (!res.ok) return false;
+
+    const data = await res.json();
+    setUser(data.user);
+    localStorage.setItem("dm_user", JSON.stringify(data.user));
+    return true;
+  };
+
+  /* ================= CHANGE PASSWORD ================= */
+  const changePassword = async (payload) => {
+    const res = await fetch(`${API_BASE}/api/auth/change-password`, {
+      method: "PUT",
+      headers: authHeader(),
+      body: JSON.stringify(payload)
+    });
+
+    return res.ok;
+  };
+
+  /* ================= UPLOAD AVATAR (OPTIONAL) ================= */
+  const uploadAvatar = async (file) => {
+    const fd = new FormData();
+    fd.append("avatar", file);
+
+    const res = await fetch(`${API_BASE}/api/auth/upload-avatar`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: fd
+    });
+
+    return res.ok;
+  };
+
   /* ================= LOGOUT ================= */
   const logout = () => {
-    localStorage.removeItem("dm_user");
-    localStorage.removeItem("dm_token");
+    localStorage.clear();
     setUser(null);
     setToken(null);
   };
-
-  /* ================= AUTH HEADER ================= */
-  const authHeader = () => ({
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`
-  });
 
   return (
     <AuthContext.Provider
       value={{
         user,
         token,
+        setUser,
         loading,
         login,
         register,
+        loadMe,          // ✅ ADDED
+        updateProfile,   // ✅ ADDED
+        changePassword,  // ✅ ADDED
+        uploadAvatar,    // ✅ ADDED
         logout,
         authHeader
       }}
@@ -92,5 +149,4 @@ export function AuthProvider({ children }) {
   );
 }
 
-/* ================= USE AUTH ================= */
 export const useAuth = () => useContext(AuthContext);

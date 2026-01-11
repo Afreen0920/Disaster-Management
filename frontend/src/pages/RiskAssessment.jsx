@@ -58,7 +58,7 @@ export default function RiskAssessment() {
         axios.get(`${API_BASE}/api/reports/all`, { headers: authHeader() }),
         axios.get(`${API_BASE}/api/reports/risk`, { headers: authHeader() })
       ]).then(([r1, r2]) => {
-        setReports(r1.data || []);
+        setReports(r1.data.filter(r => r.status !== "Completed"));~
         setRiskData(r2.data);
         setLoadingPage(false);
       });

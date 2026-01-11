@@ -130,7 +130,7 @@ export default function Rescue() {
                 className="complete-box"
                 onClick={() => completeRescue(r._id)}
               >
-                Completed
+                Mark as Complete
               </div>
             </div>
           ))}

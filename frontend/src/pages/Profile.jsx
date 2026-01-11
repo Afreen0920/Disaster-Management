@@ -35,8 +35,9 @@ export default function Profile() {
         </div>
 
         <div className="profile-actions">
-          <Link to="/profile/edit" className="btn-primary">Edit Profile</Link>
-          <Link to="/profile/password" className="btn-outline">Change Password</Link>
+          {/* ✅ PATH FIXED */}
+          <Link to="/edit-profile" className="btn-primary">Edit Profile</Link>
+          <Link to="/change-password" className="btn-outline">Change Password</Link>
         </div>
 
         <div className="profile-info">

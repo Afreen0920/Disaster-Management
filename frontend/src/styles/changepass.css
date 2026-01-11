@@ -10,3 +10,25 @@
 .btn-primary, .btn-outline { padding:10px 14px; border-radius:8px; font-weight:600; text-decoration:none; }
 .btn-primary { background:#1a73e8; color:#fff; border:none; }
 .btn-outline { background:#fff; border:1px solid #1a73e8; color:#1a73e8; }
+/* ===== PASSWORD INPUT WITH EYE ICON ===== */
+.cp-input-wrap {
+  position: relative;
+}
+
+.cp-input-wrap input {
+  padding-right: 44px; /* space for eye icon */
+}
+
+.cp-input-wrap span {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #64748b;
+  font-size: 16px;
+}
+
+.cp-input-wrap span:hover {
+  color: #1a73e8;
+}

@@ -17,7 +17,7 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // ⚠️ DO NOT HASH HERE
+    // Password hashing is handled in User model (pre-save hook)
     const user = await User.create({
       name,
       email,

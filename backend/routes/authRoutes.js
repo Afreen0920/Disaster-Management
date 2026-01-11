@@ -1,70 +1,66 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-// =======================
-// REGISTER USER
-// =======================
+// ================= REGISTER =================
 router.post("/register", async (req, res) => {
   try {
-    const { name, address, phone, email, password, role } = req.body;
+    const { name, email, password, phone, address, role } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "Email already exists" });
+    if (!name || !email || !password || !phone || !address) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Password hashing is handled in User model (pre-save hook)
     const user = await User.create({
       name,
-      address,
-      phone,
       email,
       password,
-      role // if not sent, default = citizen
+      phone,
+      address,
+      role: role || "citizen"
     });
 
-    res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
-    });
-  } catch (error) {
-    console.log("Register error:", error);
-    res.status(500).json({ error: "Registration failed" });
+    res.status(201).json({ message: "Registered successfully" });
+  } catch (err) {
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
 });
 
-// =======================
-// LOGIN USER
-// =======================
+// ================= LOGIN =================
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // ✅ FETCH PASSWORD EXPLICITLY
+    console.log("LOGIN ATTEMPT:", email);
+
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
-      return res.status(400).json({ error: "Invalid email" });
+      console.log("USER NOT FOUND");
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const isMatch = await user.matchPassword(password);
+    console.log("PASSWORD MATCH:", isMatch);
+
     if (!isMatch) {
-      return res.status(400).json({ error: "Invalid password" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "1d" }
     );
 
-    res.status(200).json({
-      message: "Login successful",
+    res.json({
       token,
       user: {
         id: user._id,
@@ -73,9 +69,9 @@ router.post("/login", async (req, res) => {
         role: user.role
       }
     });
-  } catch (error) {
-    console.log("Login error:", error);
-    res.status(500).json({ error: "Login failed" });
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

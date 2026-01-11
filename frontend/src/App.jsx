@@ -1,133 +1,135 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import AlertPage from "./pages/AlertPage";
+import RiskAssessment from "./pages/RiskAssessment";
+import Rescue from "./pages/Rescue";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import ChangePassword from "./pages/ChangePassword";
-import AlertPage from "./pages/AlertPage";
-import Rescue from "./pages/Rescue";
+import ResponderReports from "./pages/ResponderReports";
+import SubmitReport from "./pages/SubmitReport";
+import MyReports from "./pages/MyReports"; // ✅ ADDED
 
-/* ================= AUTH GUARD ================= */
+import { AuthProvider, useAuth } from "./context/AuthContext";
+
+/* ================= PRIVATE ROUTE ================= */
 function PrivateRoute({ children }) {
-  const { user } = useAuth();
-
-  if (user === undefined) {
-    return <div>Loading...</div>; // ⏳ prevents blank screen
-  }
-
-  return user ? children : <Navigate to="/login" />;
-}
-
-
-
-function PublicRoute({ children }) {
-  const { isAuthenticated, authLoading } = useAuth();
-
-  if (authLoading) {
-    return <div>Loading...</div>;
-  }
-
-  return isAuthenticated ? <Navigate to="/dashboard" /> : children;
-}
-
-
-function RescueRoute({ children }) {
   const { user, loading } = useAuth();
 
   if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
 
-  return user.role === "admin" || user.role === "responder"
-    ? children
-    : <Navigate to="/dashboard" replace />;
+  return children;
 }
 
 export default function App() {
   return (
     <AuthProvider>
-      <Routes>
-        {/* PUBLIC */}
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          }
-        />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-        <Route
-          path="/register"
-          element={
-            <PublicRoute>
-              <Register />
-            </PublicRoute>
-          }
-        />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* PRIVATE */}
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
 
-        <Route
-          path="/alerts"
-          element={
-            <PrivateRoute>
-              <AlertPage />
-            </PrivateRoute>
-          }
-        />
+          <Route
+            path="/alerts"
+            element={
+              <PrivateRoute>
+                <AlertPage />
+              </PrivateRoute>
+            }
+          />
 
-        <Route
-          path="/rescue"
-          element={
-            <PrivateRoute>
-              <Rescue />
-          </PrivateRoute>
-        }
-      />
+          <Route
+            path="/reports"
+            element={
+              <PrivateRoute>
+                <RiskAssessment />
+              </PrivateRoute>
+            }
+          />
 
+          <Route
+            path="/submit-report"
+            element={
+              <PrivateRoute>
+                <SubmitReport />
+              </PrivateRoute>
+            }
+          />
 
-        <Route
-          path="/profile"
-          element={
-            <PrivateRoute>
-              <Profile />
-            </PrivateRoute>
-          }
-        />
+          {/* ✅ FIXED ROUTE */}
+          <Route
+            path="/my-reports"
+            element={
+              <PrivateRoute>
+                <MyReports />
+              </PrivateRoute>
+            }
+          />
 
-        <Route
-          path="/profile/edit"
-          element={
-            <PrivateRoute>
-              <EditProfile />
-            </PrivateRoute>
-          }
-        />
+          <Route
+            path="/responder-reports"
+            element={
+              <PrivateRoute>
+                <ResponderReports />
+              </PrivateRoute>
+            }
+          />
 
-        <Route
-          path="/profile/password"
-          element={
-            <PrivateRoute>
-              <ChangePassword />
-            </PrivateRoute>
-          }
-        />
+          <Route
+            path="/rescue"
+            element={
+              <PrivateRoute>
+                <Rescue />
+              </PrivateRoute>
+            }
+          />
 
-        {/* FALLBACK */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/edit-profile"
+            element={
+              <PrivateRoute>
+                <EditProfile />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/change-password"
+            element={
+              <PrivateRoute>
+                <ChangePassword />
+              </PrivateRoute>
+            }
+          />
+
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </BrowserRouter>
     </AuthProvider>
   );
 }

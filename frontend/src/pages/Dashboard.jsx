@@ -7,7 +7,8 @@ import {
   FaSearch,
   FaChevronDown,
   FaUser,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaChartBar
 } from "react-icons/fa";
 
 import { useAuth } from "../context/AuthContext";
@@ -32,7 +33,7 @@ function FlyTo({ center }) {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, logout, authHeader } = useAuth();
+  const { user, logout } = useAuth();
 
   const [alerts, setAlerts] = useState([]);
   const [query, setQuery] = useState("");
@@ -45,24 +46,12 @@ export default function Dashboard() {
     lng: 78.9629
   });
 
-  /* ================= LOAD ALERTS ================= */
+  /* ================= LOAD ALERTS (DISABLED TEMPORARILY) ================= */
   useEffect(() => {
-    const loadAlerts = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/alerts/active`, {
-          headers: authHeader()
-        });
-        const data = await res.json();
-        setAlerts(Array.isArray(data) ? data : []);
-      } catch {
-        setAlerts([]);
-      }
-    };
-
-    loadAlerts();
-    const i = setInterval(loadAlerts, 5000);
-    return () => clearInterval(i);
-  }, [authHeader]);
+    // 🚫 Alerts API not implemented yet
+    // Keeping empty list to avoid crashes
+    setAlerts([]);
+  }, []);
 
   /* ================= SEARCH LOCATION ================= */
   const searchLocation = async (e) => {
@@ -114,7 +103,10 @@ export default function Dashboard() {
           <FaBell /> Alerts
         </NavLink>
 
-        {/* ✅ FIX: Rescue visible for ALL roles */}
+        <NavLink to="/reports" className="side-link">
+          <FaChartBar /> Reports
+        </NavLink>
+
         <NavLink to="/rescue" className="side-link">
           <FaExclamationTriangle /> Rescue
         </NavLink>
@@ -178,9 +170,6 @@ export default function Dashboard() {
                 onChange={(e) => setLocationF(e.target.value)}
               >
                 <option value="">Location</option>
-                {[...new Set(alerts.map((a) => a.location))].map((l) => (
-                  <option key={l}>{l}</option>
-                ))}
               </select>
               <FaChevronDown className="chev" />
             </div>
@@ -197,45 +186,28 @@ export default function Dashboard() {
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <FlyTo center={center} />
 
-            {filteredAlerts
-              .filter((a) => a.latitude && a.longitude)
-              .map((a) => (
-                <Marker
-                  key={a._id}
-                  position={[a.latitude, a.longitude]}
-                  icon={redIcon}
-                >
-                  <Popup>
-                    <b>{a.title}</b>
-                    <br />
-                    {a.type} • {a.severity}
-                    <br />
-                    {a.location}
-                  </Popup>
-                </Marker>
-              ))}
+            {filteredAlerts.map((a) => (
+              <Marker
+                key={a._id}
+                position={[a.latitude, a.longitude]}
+                icon={redIcon}
+              >
+                <Popup>
+                  <b>{a.title}</b>
+                  <br />
+                  {a.type} • {a.severity}
+                  <br />
+                  {a.location}
+                </Popup>
+              </Marker>
+            ))}
           </MapContainer>
         </div>
 
         {/* LIVE ALERTS */}
         <div className="live-alerts-container">
           <h2 className="live-alerts-title">Live Alerts</h2>
-
-          {filteredAlerts.length === 0 && (
-            <div className="no-alerts">No active alerts</div>
-          )}
-
-          {filteredAlerts.map((a) => (
-            <div key={a._id} className="live-alert-item">
-              <div className="live-alert-icon-box">⚠️</div>
-              <div className="live-alert-info">
-                <div className="live-alert-title">{a.title}</div>
-                <div className="live-alert-severity">
-                  {a.severity} • {a.location}
-                </div>
-              </div>
-            </div>
-          ))}
+          <div className="no-alerts">No active alerts</div>
         </div>
       </main>
     </div>

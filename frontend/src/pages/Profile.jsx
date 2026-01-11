@@ -1,22 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { FaUser, FaEnvelope, FaIdBadge, FaArrowLeft } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import "../styles/profile.css";
 
 export default function Profile() {
-  const { user, loadMe } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    (async () => {
-      await loadMe();
-      setLoading(false);
-    })();
-  }, []);
-
-  if (loading || !user) {
+  if (!user) {
     return (
       <div className="profile-wrapper">
         <div className="profile-card">
@@ -43,8 +35,9 @@ export default function Profile() {
         </div>
 
         <div className="profile-actions">
-          <Link to="/profile/edit" className="btn-primary">Edit Profile</Link>
-          <Link to="/profile/password" className="btn-outline">Change Password</Link>
+          {/* ✅ PATH FIXED */}
+          <Link to="/edit-profile" className="btn-primary">Edit Profile</Link>
+          <Link to="/change-password" className="btn-outline">Change Password</Link>
         </div>
 
         <div className="profile-info">

@@ -194,7 +194,9 @@ Suitable for mini projects, major projects, and internship evaluations
 Developer Details:
 
 Name: Afreen
+
 Branch: B.Tech – Computer Science and Engineering
+
 Project Type: Internship Project
 
 License:

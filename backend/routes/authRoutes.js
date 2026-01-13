@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const auth = require("../middleware/auth");
 
-// ================= REGISTER =================
+/* ================= REGISTER ================= */
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, phone, address, role } = req.body;
@@ -17,11 +18,10 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Password hashing is handled in User model (pre-save hook)
-    const user = await User.create({
+    await User.create({
       name,
       email,
-      password,
+      password, // hashed in schema
       phone,
       address,
       role: role || "citizen"
@@ -29,27 +29,21 @@ router.post("/register", async (req, res) => {
 
     res.status(201).json({ message: "Registered successfully" });
   } catch (err) {
-    console.error("REGISTER ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
 
-// ================= LOGIN =================
+/* ================= LOGIN ================= */
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    console.log("LOGIN ATTEMPT:", email);
-
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
-      console.log("USER NOT FOUND");
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const isMatch = await user.matchPassword(password);
-    console.log("PASSWORD MATCH:", isMatch);
-
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -66,12 +60,72 @@ router.post("/login", async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        phone: user.phone,
+        address: user.address
       }
     });
-  } catch (err) {
-    console.error("LOGIN ERROR:", err);
+  } catch {
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* ================= GET CURRENT USER ================= */
+router.get("/me", auth, async (req, res) => {
+  res.json({
+    id: req.user._id,
+    name: req.user.name,
+    email: req.user.email,
+    role: req.user.role,
+    phone: req.user.phone,
+    address: req.user.address
+  });
+});
+
+/* ================= UPDATE PROFILE ================= */
+router.put("/update-profile", auth, async (req, res) => {
+  try {
+    const { name, phone, address } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, phone, address },
+      { new: true }
+    );
+
+    res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        address: user.address
+      }
+    });
+  } catch {
+    res.status(500).json({ message: "Profile update failed" });
+  }
+});
+
+/* ================= CHANGE PASSWORD ================= */
+router.put("/change-password", auth, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user._id).select("+password");
+
+    const isMatch = await user.matchPassword(oldPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Old password incorrect" });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: "Password updated successfully" });
+  } catch {
+    res.status(500).json({ message: "Password update failed" });
   }
 });
 
